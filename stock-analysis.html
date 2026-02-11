@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Analysis - Static Data (100% Reliable)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f2e 100%);
+      color: white;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 50px 20px;
+      background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(102, 126, 234, 0.1));
+      border-radius: 24px;
+      border: 2px solid rgba(46, 213, 115, 0.4);
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #2ed573, #26d0ce);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #2ed573, #26d0ce);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 15px;
+      box-shadow: 0 5px 20px rgba(46, 213, 115, 0.3);
+    }
+
+    .info-banner {
+      background: rgba(46, 213, 115, 0.1);
+      border: 2px solid rgba(46, 213, 115, 0.3);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .search-section {
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      gap: 15px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 20px 30px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 15px;
+      color: white;
+      font-size: 1.3rem;
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 200px;
+      background: rgba(10, 14, 39, 0.98);
+      border: 2px solid rgba(102, 126, 234, 0.4);
+      border-top: none;
+      border-radius: 0 0 15px 15px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .autocomplete-dropdown.show {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: 15px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .autocomplete-item:hover {
+      background: rgba(102, 126, 234, 0.2);
+    }
+
+    .autocomplete-symbol {
+      font-weight: 700;
+      color: #667eea;
+      font-size: 1.1rem;
+    }
+
+    .autocomplete-name {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
+      margin-top: 3px;
+    }
+
+    .btn {
+      padding: 20px 50px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.2rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    }
+
+    .overview-section {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.05));
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 30px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .stock-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .stock-symbol {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #a8b2d1;
+    }
+
+    .stock-name {
+      font-size: 1.4rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 8px;
+    }
+
+    .price-display {
+      text-align: right;
+    }
+
+    .current-price {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #667eea;
+      line-height: 1;
+    }
+
+    .price-change {
+      font-size: 1.5rem;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .positive { color: #2ed573; }
+    .negative { color: #ff6b6b; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .metric-box {
+      background: rgba(0,0,0,0.3);
+      padding: 25px;
+      border-radius: 14px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #a8b2d1;
+    }
+
+    .tabs-section {
+      margin-bottom: 30px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 18px 30px;
+      background: rgba(255,255,255,0.03);
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover, .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .tab-content {
+      display: none;
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 35px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 18px;
+      text-align: left;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .data-table th {
+      background: rgba(102, 126, 234, 0.15);
+      color: #a8b2d1;
+      font-weight: 600;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .data-table td {
+      color: rgba(255,255,255,0.85);
+      font-size: 1.05rem;
+    }
+
+    .data-table tr:hover {
+      background: rgba(102, 126, 234, 0.05);
+    }
+
+    .data-table .highlight {
+      background: rgba(102, 126, 234, 0.15);
+      font-weight: 700;
+    }
+
+    .error-box {
+      background: rgba(255, 107, 107, 0.15);
+      border: 2px solid #ff6b6b;
+      border-radius: 15px;
+      padding: 30px;
+      margin: 20px 0;
+      color: #ff6b6b;
+      font-size: 1.1rem;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 100px 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 70px;
+      height: 70px;
+      border: 7px solid rgba(102, 126, 234, 0.2);
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 25px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .last-updated {
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>📊 Professional Stock Analysis</h1>
+      <p style="font-size: 1.2rem; color: rgba(255,255,255,0.8); margin-top: 10px;">
+        Static Data • 100% Reliable • No API Errors • Lightning Fast
+      </p>
+      <div class="status-badge">✅ 100% RELIABLE • NO CORS • NO RATE LIMITS</div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+      <h3 style="color: #2ed573; margin-bottom: 10px;">📡 Data Source: Pre-Loaded JSON</h3>
+      <p style="font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.8;">
+        All stock data is fetched once daily and stored locally. No real-time API calls = Zero errors!
+      </p>
+      <div class="last-updated" id="globalLastUpdated"></div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-section">
+      <h2 style="text-align: center; margin-bottom: 25px; color: #a8b2d1; font-size: 1.8rem;">🔍 Search Available Stocks</h2>
+      <div class="search-box">
+        <input type="text" id="symbolInput" placeholder="Type stock symbol or name (e.g., AAPL, Tesla, Microsoft)..." oninput="searchStocks()" onfocus="showDropdown()" onblur="hideDropdownDelayed()">
+        <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+        <button class="btn" onclick="displayStock()">Analyze</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none;">
+      <!-- Overview -->
+      <div class="overview-section">
+        <div class="stock-title-row">
+          <div>
+            <div class="stock-symbol" id="stockSymbol"></div>
+            <div class="stock-name" id="stockName"></div>
+            <div style="margin-top: 10px; font-size: 1rem; color: rgba(255,255,255,0.5);" id="stockExchange"></div>
+          </div>
+          <div class="price-display">
+            <div class="current-price" id="currentPrice"></div>
+            <div class="price-change" id="priceChange"></div>
+          </div>
+        </div>
+        <div class="metrics-grid" id="metricsGrid"></div>
+        <div class="last-updated" id="stockLastUpdated"></div>
+      </div>
+
+      <!-- Financial Data Tabs -->
+      <div class="tabs-section">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+          <button class="tab" onclick="switchTab('financials')">💰 Financials</button>
+          <button class="tab" onclick="switchTab('ratios')">📈 Ratios</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview-tab" class="tab-content active">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">📊 Company Overview</h3>
+          <div id="overviewContent"></div>
+        </div>
+
+        <!-- Financials Tab -->
+        <div id="financials-tab" class="tab-content">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">💰 Financial Performance</h3>
+          <div id="financialsContent"></div>
+        </div>
+
+        <!-- Ratios Tab -->
+        <div id="ratios-tab" class="tab-content">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">📈 Financial Ratios</h3>
+          <div id="ratiosContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p style="font-size: 1.3rem; color: #667eea; font-weight: 600;">Loading stock data...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="errorBox"></div>
+  </div>
+
+  <script>
+    // ==========================================
+    // GLOBAL STATE
+    // ==========================================
+    
+    let stockData = null;
+    let currentSymbol = '';
+    let availableStocks = [];
+
+    // ==========================================
+    // LOAD DATA ON PAGE LOAD
+    // ==========================================
+    
+    window.addEventListener('DOMContentLoaded', async () => {
+      showLoading(true);
+      try {
+        const response = await fetch('stock-data.json');
+        const data = await response.json();
+        
+        stockData = data.stocks;
+        availableStocks = Object.keys(stockData).map(symbol => ({
+          symbol: symbol,
+          name: stockData[symbol].name
+        }));
+        
+        // Show last updated time
+        const lastUpdated = new Date(data.lastUpdated);
+        document.getElementById('globalLastUpdated').textContent = 
+          `Data last updated: ${lastUpdated.toLocaleString()}`;
+        
+        console.log(`✅ Loaded ${data.totalStocks} stocks`);
+        showLoading(false);
+        
+      } catch (e) {
+        showLoading(false);
+        showError('Failed to load stock data. Please make sure stock-data.json is in the same directory.');
+        console.error('Load error:', e);
+      }
+    });
+
+    // ==========================================
+    // AUTOCOMPLETE SEARCH
+    // ==========================================
+    
+    function searchStocks() {
+      const input = document.getElementById('symbolInput');
+      const query = input.value.trim().toUpperCase();
+      const dropdown = document.getElementById('autocompleteDropdown');
+      
+      if (query.length === 0) {
+        dropdown.classList.remove('show');
+        return;
+      }
+      
+      // Search in symbol or name
+      const matches = availableStocks.filter(stock => 
+        stock.symbol.toUpperCase().includes(query) ||
+        stock.name.toUpperCase().includes(query)
+      ).slice(0, 10);
+      
+      if (matches.length > 0) {
+        dropdown.innerHTML = matches.map(stock => `
+          <div class="autocomplete-item" onmousedown="selectStock('${stock.symbol}')">
+            <div class="autocomplete-symbol">${stock.symbol}</div>
+            <div class="autocomplete-name">${stock.name}</div>
+          </div>
+        `).join('');
+        dropdown.classList.add('show');
+      } else {
+        dropdown.classList.remove('show');
+      }
+    }
+
+    function selectStock(symbol) {
+      document.getElementById('symbolInput').value = symbol;
+      document.getElementById('autocompleteDropdown').classList.remove('show');
+      currentSymbol = symbol;
+      displayStock();
+    }
+
+    function showDropdown() {
+      if (document.getElementById('symbolInput').value.trim()) {
+        searchStocks();
+      }
+    }
+
+    function hideDropdownDelayed() {
+      setTimeout(() => {
+        document.getElementById('autocompleteDropdown').classList.remove('show');
+      }, 200);
+    }
+
+    // ==========================================
+    // DISPLAY STOCK
+    // ==========================================
+    
+    function displayStock() {
+      const symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+      
+      if (!symbol) {
+        showError('Please enter a stock symbol');
+        return;
+      }
+      
+      if (!stockData[symbol]) {
+        showError(`Stock "${symbol}" not found in database. Available stocks: ${availableStocks.length} symbols.`);
+        return;
+      }
+      
+      hideError();
+      currentSymbol = symbol;
+      const stock = stockData[symbol];
+      
+      // Display overview
+      displayOverview(stock);
+      displayOverviewTab(stock);
+      displayFinancials(stock);
+      displayRatios(stock);
+      
+      // Show content
+      document.getElementById('mainContent').style.display = 'block';
+      
+      // Scroll to content
+      document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function displayOverview(stock) {
+      document.getElementById('stockSymbol').textContent = stock.symbol;
+      document.getElementById('stockName').textContent = stock.name;
+      document.getElementById('stockExchange').textContent = `${stock.exchange} • ${stock.currency}`;
+      
+      document.getElementById('currentPrice').textContent = `$${stock.price.toFixed(2)}`;
+      
+      const changeClass = stock.change >= 0 ? 'positive' : 'negative';
+      const changeSymbol = stock.change >= 0 ? '▲' : '▼';
+      
+      document.getElementById('priceChange').innerHTML = `
+        <span class="${changeClass}">
+          ${changeSymbol} $${Math.abs(stock.change).toFixed(2)} (${Math.abs(stock.changePercent).toFixed(2)}%)
+        </span>
+      `;
+      
+      const metrics = [
+        { label: 'Day High', value: `$${stock.dayHigh.toFixed(2)}` },
+        { label: 'Day Low', value: `$${stock.dayLow.toFixed(2)}` },
+        { label: 'Volume', value: stock.volume.toLocaleString() },
+        { label: 'Prev Close', value: `$${stock.previousClose.toFixed(2)}` },
+        { label: 'Market Cap', value: formatLarge(stock.marketCap) },
+        { label: 'P/E Ratio', value: stock.pe },
+        { label: '52W High', value: stock.fiftyTwoWeekHigh },
+        { label: '52W Low', value: stock.fiftyTwoWeekLow }
+      ];
+      
+      document.getElementById('metricsGrid').innerHTML = metrics.map(m => `
+        <div class="metric-box">
+          <div class="metric-label">${m.label}</div>
+          <div class="metric-value">${m.value}</div>
+        </div>
+      `).join('');
+      
+      const lastUpdated = new Date(stock.lastUpdated);
+      document.getElementById('stockLastUpdated').textContent = 
+        `Last updated: ${lastUpdated.toLocaleString()}`;
+    }
+
+    function displayOverviewTab(stock) {
+      const overviewData = [
+        ['Market Cap', formatLarge(stock.marketCap)],
+        ['P/E Ratio', stock.pe],
+        ['Forward P/E', stock.forwardPE],
+        ['PEG Ratio', stock.pegRatio],
+        ['Price to Book', stock.priceToBook],
+        ['Price to Sales', stock.priceToSales],
+        ['Dividend Yield', stock.dividendYield],
+        ['Beta', stock.beta],
+        ['52-Week High', stock.fiftyTwoWeekHigh],
+        ['52-Week Low', stock.fiftyTwoWeekLow]
+      ];
+      
+      document.getElementById('overviewContent').innerHTML = `
+        <table class="data-table">
+          <tr><th>Metric</th><th>Value</th></tr>
+          ${overviewData.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join('')}
+        </table>
+      `;
+    }
+
+    function displayFinancials(stock) {
+      const financialData = [
+        ['Revenue (TTM)', formatLarge(stock.revenue)],
+        ['Revenue Growth', stock.revenueGrowth],
+        ['Gross Profit', formatLarge(stock.grossProfit)],
+        ['EBITDA', formatLarge(stock.ebitda)],
+        ['Operating Margin', stock.operatingMargin],
+        ['Profit Margin', stock.profitMargin],
+        ['Total Cash', formatLarge(stock.totalCash)],
+        ['Total Debt', formatLarge(stock.totalDebt)],
+        ['Debt to Equity', stock.debtToEquity],
+        ['Current Ratio', stock.currentRatio],
+        ['Free Cash Flow', formatLarge(stock.freeCashflow)]
+      ];
+      
+      document.getElementById('financialsContent').innerHTML = `
+        <table class="data-table">
+          <tr><th>Financial Metric</th><th>Value</th></tr>
+          ${financialData.map(([label, value], i) => {
+            const highlight = [0, 2, 3, 10].includes(i) ? 'highlight' : '';
+            return `<tr class="${highlight}"><td>${label}</td><td>${value}</td></tr>`;
+          }).join('')}
+        </table>
+      `;
+    }
+
+    function displayRatios(stock) {
+      const ratios = [
+        ['Profit Margin', stock.profitMargin],
+        ['Operating Margin', stock.operatingMargin],
+        ['ROE (Return on Equity)', stock.roe],
+        ['ROA (Return on Assets)', stock.roa],
+        ['Current Ratio', stock.currentRatio],
+        ['Debt to Equity', stock.debtToEquity],
+        ['P/E Ratio', stock.pe],
+        ['Forward P/E', stock.forwardPE],
+        ['PEG Ratio', stock.pegRatio],
+        ['Price to Book', stock.priceToBook],
+        ['Price to Sales', stock.priceToSales],
+        ['Beta', stock.beta]
+      ];
+      
+      document.getElementById('ratiosContent').innerHTML = `
+        <table class="data-table">
+          <tr><th>Ratio</th><th>Value</th></tr>
+          ${ratios.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join('')}
+        </table>
+      `;
+    }
+
+    // ==========================================
+    // UTILITIES
+    // ==========================================
+    
+    function formatLarge(num) {
+      if (!num && num !== 0) return 'N/A';
+      if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+      if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+      if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+      return `$${num.toLocaleString()}`;
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    function showError(msg) {
+      document.getElementById('errorBox').innerHTML = `<div class="error-box"><strong>❌ Error:</strong> ${msg}</div>`;
+    }
+
+    function hideError() {
+      document.getElementById('errorBox').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
