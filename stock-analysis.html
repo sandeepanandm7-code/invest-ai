@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Analysis - 100% Free (Yahoo Finance)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f2e 100%);
+      color: white;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 50px 20px;
+      background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(102, 126, 234, 0.1));
+      border-radius: 24px;
+      border: 2px solid rgba(46, 213, 115, 0.4);
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #2ed573, #26d0ce);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .free-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #2ed573, #26d0ce);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 15px;
+      box-shadow: 0 5px 20px rgba(46, 213, 115, 0.3);
+    }
+
+    .info-banner {
+      background: rgba(46, 213, 115, 0.1);
+      border: 2px solid rgba(46, 213, 115, 0.3);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .info-banner h3 {
+      color: #2ed573;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+    }
+
+    .search-section {
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 15px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 20px 30px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 15px;
+      color: white;
+      font-size: 1.3rem;
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 200px;
+      background: rgba(10, 14, 39, 0.98);
+      border: 2px solid rgba(102, 126, 234, 0.4);
+      border-top: none;
+      border-radius: 0 0 15px 15px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .autocomplete-dropdown.show {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: 15px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .autocomplete-item:hover {
+      background: rgba(102, 126, 234, 0.2);
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-symbol {
+      font-weight: 700;
+      color: #667eea;
+      font-size: 1.1rem;
+      margin-bottom: 3px;
+    }
+
+    .autocomplete-name {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
+    }
+
+    .autocomplete-exchange {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      margin-top: 3px;
+    }
+
+    .btn {
+      padding: 20px 50px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.2rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    }
+
+    .overview-section {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.05));
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 30px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .stock-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .stock-symbol {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #a8b2d1;
+    }
+
+    .stock-name {
+      font-size: 1.4rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 8px;
+    }
+
+    .price-display {
+      text-align: right;
+    }
+
+    .current-price {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #667eea;
+      line-height: 1;
+    }
+
+    .price-change {
+      font-size: 1.5rem;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .positive { color: #2ed573; }
+    .negative { color: #ff6b6b; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .metric-box {
+      background: rgba(0,0,0,0.3);
+      padding: 25px;
+      border-radius: 14px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .metric-box:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .metric-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #a8b2d1;
+    }
+
+    .chart-section {
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .chart-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #a8b2d1;
+    }
+
+    .time-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .time-btn {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .time-btn:hover, .time-btn.active {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2));
+      border-color: #667eea;
+      transform: scale(1.05);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 500px;
+      margin-top: 20px;
+    }
+
+    .tabs-section {
+      margin-bottom: 30px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      overflow-x: auto;
+    }
+
+    .tab {
+      padding: 18px 30px;
+      background: rgba(255,255,255,0.03);
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .tab:hover, .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .tab-content {
+      display: none;
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 35px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 18px;
+      text-align: left;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .data-table th {
+      background: rgba(102, 126, 234, 0.15);
+      color: #a8b2d1;
+      font-weight: 600;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .data-table td {
+      color: rgba(255,255,255,0.85);
+      font-size: 1.05rem;
+    }
+
+    .data-table tr:hover {
+      background: rgba(102, 126, 234, 0.05);
+    }
+
+    .data-table .highlight {
+      background: rgba(102, 126, 234, 0.15);
+      font-weight: 700;
+    }
+
+    .ratio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 25px;
+    }
+
+    .ratio-card {
+      background: rgba(255,255,255,0.03);
+      padding: 28px;
+      border-radius: 14px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .ratio-card:hover {
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .ratio-card h4 {
+      color: #667eea;
+      margin-bottom: 22px;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ratio-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .ratio-item:last-child {
+      border-bottom: none;
+    }
+
+    .ratio-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 1rem;
+    }
+
+    .ratio-value {
+      color: #a8b2d1;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 100px 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 70px;
+      height: 70px;
+      border: 7px solid rgba(102, 126, 234, 0.2);
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 25px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-box {
+      background: rgba(255, 107, 107, 0.15);
+      border: 2px solid #ff6b6b;
+      border-radius: 15px;
+      padding: 30px;
+      margin: 20px 0;
+      color: #ff6b6b;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+      .stock-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .price-display {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>📊 Professional Stock Analysis</h1>
+      <p style="font-size: 1.2rem; color: rgba(255,255,255,0.8); margin-top: 10px;">
+        Powered 100% by Yahoo Finance • Completely Free • No API Keys Required
+      </p>
+      <div class="free-badge">✅ 100% FREE • UNLIMITED USAGE • NO REGISTRATION</div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+      <h3>🎉 No API Keys Needed!</h3>
+      <p style="font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.8;">
+        This tool uses Yahoo Finance's free public API. No sign-up, no rate limits, no costs.
+        <br>Get complete fundamental analysis, charts, and financial data for any stock!
+      </p>
+    </div>
+
+    <!-- Search -->
+    <div class="search-section">
+      <h2 style="text-align: center; margin-bottom: 25px; color: #a8b2d1; font-size: 1.8rem;">🔍 Analyze Any Stock</h2>
+      <div class="search-box">
+        <input type="text" id="symbolInput" placeholder="Enter symbol (AAPL, TSLA, MSFT, GOOGL, AMZN, META...)..." onkeydown="handleKeyDown(event)" oninput="searchSymbols()" onfocus="showDropdown()" onblur="hideDropdownDelayed()">
+        <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+        <button class="btn" onclick="analyzeStock()">Analyze</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none;">
+      <!-- Overview -->
+      <div class="overview-section">
+        <div class="stock-title-row">
+          <div>
+            <div class="stock-symbol" id="stockSymbol"></div>
+            <div class="stock-name" id="stockName"></div>
+            <div style="margin-top: 10px; font-size: 1rem; color: rgba(255,255,255,0.5);" id="stockExchange"></div>
+          </div>
+          <div class="price-display">
+            <div class="current-price" id="currentPrice"></div>
+            <div class="price-change" id="priceChange"></div>
+          </div>
+        </div>
+        <div class="metrics-grid" id="metricsGrid"></div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="chart-title">📈 Price Chart (Yahoo Finance)</div>
+          <div class="time-selector">
+            <button class="time-btn" onclick="changeTimeRange('1d')">1 Day</button>
+            <button class="time-btn" onclick="changeTimeRange('5d')">5 Days</button>
+            <button class="time-btn active" onclick="changeTimeRange('1mo')">1 Month</button>
+            <button class="time-btn" onclick="changeTimeRange('3mo')">3 Months</button>
+            <button class="time-btn" onclick="changeTimeRange('6mo')">6 Months</button>
+            <button class="time-btn" onclick="changeTimeRange('1y')">1 Year</button>
+            <button class="time-btn" onclick="changeTimeRange('5y')">5 Years</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Fundamental Analysis Tabs -->
+      <div class="tabs-section">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+          <button class="tab" onclick="switchTab('financials')">💰 Financials</button>
+          <button class="tab" onclick="switchTab('ratios')">📈 Ratios</button>
+          <button class="tab" onclick="switchTab('valuation')">💎 Valuation</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview-tab" class="tab-content active">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">📊 Company Overview & Key Metrics</h3>
+          <div id="overviewContent"></div>
+        </div>
+
+        <!-- Financials Tab -->
+        <div id="financials-tab" class="tab-content">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">💰 Financial Performance</h3>
+          <div id="financialsContent"></div>
+        </div>
+
+        <!-- Ratios Tab -->
+        <div id="ratios-tab" class="tab-content">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">📈 Financial Ratios Analysis</h3>
+          <div id="ratiosContent"></div>
+        </div>
+
+        <!-- Valuation Tab -->
+        <div id="valuation-tab" class="tab-content">
+          <h3 style="color: #a8b2d1; margin-bottom: 25px; font-size: 1.5rem;">💎 Valuation Metrics</h3>
+          <div id="valuationContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p style="font-size: 1.3rem; color: #667eea; font-weight: 600;">Loading comprehensive analysis...</p>
+      <p style="font-size: 1rem; color: rgba(255,255,255,0.5); margin-top: 15px;">
+        Fetching charts, financial statements, ratios, and valuation metrics from Yahoo Finance
+      </p>
+    </div>
+
+    <!-- Error -->
+    <div id="errorBox"></div>
+  </div>
+
+  <script>
+    let currentSymbol = '';
+    let currentTimeRange = '1mo';
+    let priceChart = null;
+    let searchTimeout = null;
+    let selectedIndex = -1;
+
+    // ==========================================
+    // AUTOCOMPLETE SEARCH
+    // ==========================================
+    
+    async function searchSymbols() {
+      const input = document.getElementById('symbolInput');
+      const query = input.value.trim().toUpperCase();
+      const dropdown = document.getElementById('autocompleteDropdown');
+      
+      selectedIndex = -1; // Reset selection
+      
+      // Clear previous timeout
+      if (searchTimeout) clearTimeout(searchTimeout);
+      
+      // Hide dropdown if query is empty
+      if (query.length === 0) {
+        dropdown.classList.remove('show');
+        return;
+      }
+      
+      // Debounce search
+      searchTimeout = setTimeout(async () => {
+        try {
+          // Use Yahoo Finance search API
+          const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${query}&quotesCount=10&newsCount=0`);
+          const data = await res.json();
+          
+          if (data.quotes && data.quotes.length > 0) {
+            displayAutocomplete(data.quotes);
+          } else {
+            dropdown.classList.remove('show');
+          }
+        } catch (e) {
+          console.error('Search error:', e);
+          dropdown.classList.remove('show');
+        }
+      }, 300); // Wait 300ms after user stops typing
+    }
+
+    function displayAutocomplete(quotes) {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      
+      // Filter to only stocks (not crypto, futures, etc.)
+      const stocks = quotes.filter(q => 
+        q.quoteType === 'EQUITY' || 
+        q.quoteType === 'ETF' || 
+        !q.quoteType
+      ).slice(0, 8);
+      
+      if (stocks.length === 0) {
+        dropdown.classList.remove('show');
+        return;
+      }
+      
+      dropdown.innerHTML = stocks.map((stock, index) => `
+        <div class="autocomplete-item" id="autocomplete-${index}" onmousedown="selectStock('${stock.symbol}')" onmouseover="highlightItem(${index})">
+          <div class="autocomplete-symbol">${stock.symbol}</div>
+          <div class="autocomplete-name">${stock.shortname || stock.longname || 'N/A'}</div>
+          ${stock.exchDisp ? `<div class="autocomplete-exchange">${stock.exchDisp}</div>` : ''}
+        </div>
+      `).join('');
+      
+      dropdown.classList.add('show');
+    }
+
+    function handleKeyDown(event) {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      const items = dropdown.querySelectorAll('.autocomplete-item');
+      
+      if (!dropdown.classList.contains('show') || items.length === 0) return;
+      
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+        highlightItem(selectedIndex);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        highlightItem(selectedIndex);
+      } else if (event.key === 'Enter' && selectedIndex >= 0) {
+        event.preventDefault();
+        const symbol = items[selectedIndex].querySelector('.autocomplete-symbol').textContent;
+        selectStock(symbol);
+      } else if (event.key === 'Escape') {
+        dropdown.classList.remove('show');
+        selectedIndex = -1;
+      }
+    }
+
+    function highlightItem(index) {
+      const items = document.querySelectorAll('.autocomplete-item');
+      items.forEach((item, i) => {
+        if (i === index) {
+          item.style.background = 'rgba(102, 126, 234, 0.3)';
+          selectedIndex = i;
+        } else {
+          item.style.background = '';
+        }
+      });
+    }
+
+    function selectStock(symbol) {
+      document.getElementById('symbolInput').value = symbol;
+      document.getElementById('autocompleteDropdown').classList.remove('show');
+      selectedIndex = -1;
+      analyzeStock();
+    }
+
+    function showDropdown() {
+      const query = document.getElementById('symbolInput').value.trim();
+      if (query.length > 0) {
+        searchSymbols();
+      }
+    }
+
+    function hideDropdownDelayed() {
+      // Delay to allow click on dropdown items
+      setTimeout(() => {
+        document.getElementById('autocompleteDropdown').classList.remove('show');
+        selectedIndex = -1;
+      }, 200);
+    }
+
+    // ==========================================
+    // MAIN ANALYSIS
+    // ==========================================
+    
+    async function analyzeStock() {
+      const symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+      
+      if (!symbol) {
+        showError('Please enter a stock symbol');
+        return;
+      }
+      
+      currentSymbol = symbol;
+      showLoading(true);
+      hideError();
+      
+      try {
+        // Fetch all data from Yahoo Finance
+        const [quote, fundamentals, chartData] = await Promise.all([
+          fetchYahooQuote(symbol),
+          fetchYahooFundamentals(symbol),
+          fetchYahooChart(symbol, currentTimeRange)
+        ]);
+        
+        // Display everything
+        displayOverview(quote, fundamentals);
+        displayOverviewTab(fundamentals);
+        displayFinancials(fundamentals);
+        displayRatios(fundamentals);
+        displayValuation(fundamentals, quote);
+        displayChart(chartData);
+        
+        document.getElementById('mainContent').style.display = 'block';
+        showLoading(false);
+        
+      } catch (e) {
+        showLoading(false);
+        showError(e.message);
+        console.error(e);
+      }
+    }
+
+    // ==========================================
+    // YAHOO FINANCE API CALLS (100% FREE!)
+    // ==========================================
+    
+    async function fetchYahooQuote(symbol) {
+      const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`);
+      const data = await res.json();
+      
+      if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+        throw new Error('Symbol not found');
+      }
+      
+      const result = data.chart.result[0];
+      const meta = result.meta;
+      const quote = result.indicators.quote[0];
+      
+      return {
+        symbol: meta.symbol,
+        regularMarketPrice: meta.regularMarketPrice,
+        chartPreviousClose: meta.chartPreviousClose,
+        regularMarketChange: meta.regularMarketPrice - meta.chartPreviousClose,
+        regularMarketChangePercent: ((meta.regularMarketPrice - meta.chartPreviousClose) / meta.chartPreviousClose) * 100,
+        regularMarketDayHigh: meta.regularMarketDayHigh,
+        regularMarketDayLow: meta.regularMarketDayLow,
+        regularMarketVolume: meta.regularMarketVolume,
+        currency: meta.currency,
+        exchangeName: meta.exchangeName
+      };
+    }
+
+    async function fetchYahooFundamentals(symbol) {
+      const res = await fetch(`https://query2.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=summaryDetail,financialData,defaultKeyStatistics,price`);
+      const data = await res.json();
+      
+      if (!data.quoteSummary || !data.quoteSummary.result) {
+        throw new Error('Unable to fetch fundamental data');
+      }
+      
+      return data.quoteSummary.result[0];
+    }
+
+    async function fetchYahooChart(symbol, range) {
+      let interval = '1d';
+      if (range === '1d') interval = '5m';
+      else if (range === '5d') interval = '15m';
+      else if (range === '1mo' || range === '3mo') interval = '1d';
+      else interval = '1d';
+      
+      const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}`);
+      const data = await res.json();
+      
+      if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+        throw new Error('Unable to fetch chart data');
+      }
+      
+      const result = data.chart.result[0];
+      const timestamps = result.timestamp;
+      const quotes = result.indicators.quote[0];
+      
+      return timestamps.map((t, i) => ({
+        time: new Date(t * 1000),
+        close: quotes.close[i]
+      })).filter(d => d.close !== null);
+    }
+
+    // ==========================================
+    // DISPLAY FUNCTIONS
+    // ==========================================
+    
+    function displayOverview(quote, fundamentals) {
+      const price = fundamentals.price || {};
+      const summary = fundamentals.summaryDetail || {};
+      
+      document.getElementById('stockSymbol').textContent = quote.symbol;
+      document.getElementById('stockName').textContent = price.longName?.fmt || price.shortName?.fmt || quote.symbol;
+      document.getElementById('stockExchange').textContent = `${quote.exchangeName} • ${quote.currency}`;
+      
+      document.getElementById('currentPrice').textContent = `$${quote.regularMarketPrice.toFixed(2)}`;
+      
+      const change = quote.regularMarketChange;
+      const changePercent = quote.regularMarketChangePercent;
+      const changeClass = change >= 0 ? 'positive' : 'negative';
+      const changeSymbol = change >= 0 ? '▲' : '▼';
+      
+      document.getElementById('priceChange').innerHTML = `
+        <span class="${changeClass}">
+          ${changeSymbol} $${Math.abs(change).toFixed(2)} (${Math.abs(changePercent).toFixed(2)}%)
+        </span>
+      `;
+      
+      const metrics = [
+        { label: 'Day High', value: quote.regularMarketDayHigh ? `$${quote.regularMarketDayHigh.toFixed(2)}` : 'N/A' },
+        { label: 'Day Low', value: quote.regularMarketDayLow ? `$${quote.regularMarketDayLow.toFixed(2)}` : 'N/A' },
+        { label: 'Volume', value: quote.regularMarketVolume ? quote.regularMarketVolume.toLocaleString() : 'N/A' },
+        { label: 'Prev Close', value: quote.chartPreviousClose ? `$${quote.chartPreviousClose.toFixed(2)}` : 'N/A' },
+        { label: 'Market Cap', value: summary.marketCap ? formatLarge(summary.marketCap.raw) : 'N/A' },
+        { label: 'P/E Ratio', value: summary.trailingPE ? summary.trailingPE.fmt : 'N/A' },
+        { label: '52W High', value: summary.fiftyTwoWeekHigh ? `$${summary.fiftyTwoWeekHigh.fmt}` : 'N/A' },
+        { label: '52W Low', value: summary.fiftyTwoWeekLow ? `$${summary.fiftyTwoWeekLow.fmt}` : 'N/A' }
+      ];
+      
+      document.getElementById('metricsGrid').innerHTML = metrics.map(m => `
+        <div class="metric-box">
+          <div class="metric-label">${m.label}</div>
+          <div class="metric-value">${m.value}</div>
+        </div>
+      `).join('');
+    }
+
+    function displayOverviewTab(fundamentals) {
+      const summary = fundamentals.summaryDetail || {};
+      const keyStats = fundamentals.defaultKeyStatistics || {};
+      
+      const overviewData = [
+        ['Market Cap', summary.marketCap ? formatLarge(summary.marketCap.raw) : 'N/A'],
+        ['Enterprise Value', keyStats.enterpriseValue ? formatLarge(keyStats.enterpriseValue.raw) : 'N/A'],
+        ['Trailing P/E', summary.trailingPE ? summary.trailingPE.fmt : 'N/A'],
+        ['Forward P/E', summary.forwardPE ? summary.forwardPE.fmt : 'N/A'],
+        ['PEG Ratio', keyStats.pegRatio ? keyStats.pegRatio.fmt : 'N/A'],
+        ['Price to Book', keyStats.priceToBook ? keyStats.priceToBook.fmt : 'N/A'],
+        ['Price to Sales', keyStats.priceToSalesTrailing12Months ? keyStats.priceToSalesTrailing12Months.fmt : 'N/A'],
+        ['EV to Revenue', keyStats.enterpriseToRevenue ? keyStats.enterpriseToRevenue.fmt : 'N/A'],
+        ['EV to EBITDA', keyStats.enterpriseToEbitda ? keyStats.enterpriseToEbitda.fmt : 'N/A'],
+        ['Beta', keyStats.beta ? keyStats.beta.fmt : 'N/A'],
+        ['Shares Outstanding', keyStats.sharesOutstanding ? formatLarge(keyStats.sharesOutstanding.raw) : 'N/A'],
+        ['Float Shares', keyStats.floatShares ? formatLarge(keyStats.floatShares.raw) : 'N/A'],
+        ['% Held by Insiders', keyStats.heldPercentInsiders ? keyStats.heldPercentInsiders.fmt : 'N/A'],
+        ['% Held by Institutions', keyStats.heldPercentInstitutions ? keyStats.heldPercentInstitutions.fmt : 'N/A'],
+        ['Short Ratio', keyStats.shortRatio ? keyStats.shortRatio.fmt : 'N/A'],
+        ['Dividend Rate', summary.dividendRate ? summary.dividendRate.fmt : 'N/A'],
+        ['Dividend Yield', summary.dividendYield ? summary.dividendYield.fmt : 'N/A'],
+        ['Payout Ratio', keyStats.payoutRatio ? keyStats.payoutRatio.fmt : 'N/A'],
+        ['Ex-Dividend Date', summary.exDividendDate ? new Date(summary.exDividendDate.raw * 1000).toLocaleDateString() : 'N/A']
+      ];
+      
+      document.getElementById('overviewContent').innerHTML = `
+        <table class="data-table">
+          <tr><th>Metric</th><th>Value</th></tr>
+          ${overviewData.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join('')}
+        </table>
+      `;
+    }
+
+    function displayFinancials(fundamentals) {
+      const financial = fundamentals.financialData || {};
+      
+      const financialData = [
+        ['Revenue (TTM)', financial.totalRevenue ? formatLarge(financial.totalRevenue.raw) : 'N/A'],
+        ['Revenue Per Share', financial.revenuePerShare ? financial.revenuePerShare.fmt : 'N/A'],
+        ['Revenue Growth', financial.revenueGrowth ? financial.revenueGrowth.fmt : 'N/A'],
+        ['Gross Profit', financial.grossProfits ? formatLarge(financial.grossProfits.raw) : 'N/A'],
+        ['EBITDA', financial.ebitda ? formatLarge(financial.ebitda.raw) : 'N/A'],
+        ['Operating Margin', financial.operatingMargins ? financial.operatingMargins.fmt : 'N/A'],
+        ['Profit Margin', financial.profitMargins ? financial.profitMargins.fmt : 'N/A'],
+        ['Gross Margin', financial.grossMargins ? financial.grossMargins.fmt : 'N/A'],
+        ['EBITDA Margin', financial.ebitdaMargins ? financial.ebitdaMargins.fmt : 'N/A'],
+        ['Operating Cash Flow', financial.operatingCashflow ? formatLarge(financial.operatingCashflow.raw) : 'N/A'],
+        ['Free Cash Flow', financial.freeCashflow ? formatLarge(financial.freeCashflow.raw) : 'N/A'],
+        ['Total Cash', financial.totalCash ? formatLarge(financial.totalCash.raw) : 'N/A'],
+        ['Total Cash Per Share', financial.totalCashPerShare ? financial.totalCashPerShare.fmt : 'N/A'],
+        ['Total Debt', financial.totalDebt ? formatLarge(financial.totalDebt.raw) : 'N/A'],
+        ['Debt to Equity', financial.debtToEquity ? financial.debtToEquity.fmt : 'N/A'],
+        ['Current Ratio', financial.currentRatio ? financial.currentRatio.fmt : 'N/A'],
+        ['Quick Ratio', financial.quickRatio ? financial.quickRatio.fmt : 'N/A']
+      ];
+      
+      document.getElementById('financialsContent').innerHTML = `
+        <table class="data-table">
+          <tr><th>Financial Metric</th><th>Value</th></tr>
+          ${financialData.map(([label, value], i) => {
+            const highlight = [0, 3, 4, 9, 10].includes(i) ? 'highlight' : '';
+            return `<tr class="${highlight}"><td>${label}</td><td>${value}</td></tr>`;
+          }).join('')}
+        </table>
+      `;
+    }
+
+    function displayRatios(fundamentals) {
+      const financial = fundamentals.financialData || {};
+      const keyStats = fundamentals.defaultKeyStatistics || {};
+      
+      const profitability = [
+        ['Profit Margin', financial.profitMargins?.fmt || 'N/A'],
+        ['Operating Margin', financial.operatingMargins?.fmt || 'N/A'],
+        ['Gross Margin', financial.grossMargins?.fmt || 'N/A'],
+        ['EBITDA Margin', financial.ebitdaMargins?.fmt || 'N/A'],
+        ['Return on Assets (ROA)', financial.returnOnAssets?.fmt || 'N/A'],
+        ['Return on Equity (ROE)', financial.returnOnEquity?.fmt || 'N/A']
+      ];
+      
+      const liquidity = [
+        ['Current Ratio', financial.currentRatio?.fmt || 'N/A'],
+        ['Quick Ratio', financial.quickRatio?.fmt || 'N/A'],
+        ['Total Cash Per Share', financial.totalCashPerShare?.fmt || 'N/A']
+      ];
+      
+      const leverage = [
+        ['Debt to Equity', financial.debtToEquity?.fmt || 'N/A'],
+        ['Total Debt', financial.totalDebt ? formatLarge(financial.totalDebt.raw) : 'N/A']
+      ];
+      
+      const efficiency = [
+        ['Revenue Per Share', financial.revenuePerShare?.fmt || 'N/A'],
+        ['Revenue Growth', financial.revenueGrowth?.fmt || 'N/A'],
+        ['Earnings Growth', financial.earningsGrowth?.fmt || 'N/A']
+      ];
+      
+      document.getElementById('ratiosContent').innerHTML = `
+        <div class="ratio-grid">
+          <div class="ratio-card">
+            <h4>💎 Profitability Ratios</h4>
+            ${profitability.map(([label, value]) => `
+              <div class="ratio-item">
+                <span class="ratio-label">${label}</span>
+                <span class="ratio-value">${value}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="ratio-card">
+            <h4>💧 Liquidity Ratios</h4>
+            ${liquidity.map(([label, value]) => `
+              <div class="ratio-item">
+                <span class="ratio-label">${label}</span>
+                <span class="ratio-value">${value}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="ratio-card">
+            <h4>⚖️ Leverage Ratios</h4>
+            ${leverage.map(([label, value]) => `
+              <div class="ratio-item">
+                <span class="ratio-label">${label}</span>
+                <span class="ratio-value">${value}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="ratio-card">
+            <h4>⚡ Efficiency Metrics</h4>
+            ${efficiency.map(([label, value]) => `
+              <div class="ratio-item">
+                <span class="ratio-label">${label}</span>
+                <span class="ratio-value">${value}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function displayValuation(fundamentals, quote) {
+      const summary = fundamentals.summaryDetail || {};
+      const keyStats = fundamentals.defaultKeyStatistics || {};
+      
+      const valuationData = [
+        ['Current Price', `$${quote.regularMarketPrice.toFixed(2)}`],
+        ['Market Cap', summary.marketCap ? formatLarge(summary.marketCap.raw) : 'N/A'],
+        ['Enterprise Value', keyStats.enterpriseValue ? formatLarge(keyStats.enterpriseValue.raw) : 'N/A'],
+        ['Trailing P/E', summary.trailingPE?.fmt || 'N/A'],
+        ['Forward P/E', summary.forwardPE?.fmt || 'N/A'],
+        ['PEG Ratio', keyStats.pegRatio?.fmt || 'N/A'],
+        ['Price to Book', keyStats.priceToBook?.fmt || 'N/A'],
+        ['Price to Sales (TTM)', keyStats.priceToSalesTrailing12Months?.fmt || 'N/A'],
+        ['EV to Revenue', keyStats.enterpriseToRevenue?.fmt || 'N/A'],
+        ['EV to EBITDA', keyStats.enterpriseToEbitda?.fmt || 'N/A'],
+        ['Book Value Per Share', keyStats.bookValue?.fmt || 'N/A'],
+        ['Earnings Per Share (EPS)', keyStats.trailingEps?.fmt || 'N/A'],
+        ['Forward EPS', summary.forwardEps?.fmt || 'N/A']
+      ];
+      
+      document.getElementById('valuationContent').innerHTML = `
+        <table class="data-table">
+          <tr><th>Valuation Metric</th><th>Value</th></tr>
+          ${valuationData.map(([label, value], i) => {
+            const highlight = [1, 2, 3, 5, 9].includes(i) ? 'highlight' : '';
+            return `<tr class="${highlight}"><td>${label}</td><td>${value}</td></tr>`;
+          }).join('')}
+        </table>
+      `;
+    }
+
+    function displayChart(chartData) {
+      const dates = chartData.map(d => d.time);
+      const prices = chartData.map(d => d.close);
+      
+      if (priceChart) priceChart.destroy();
+      
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [{
+            label: 'Price',
+            data: prices,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: '#667eea',
+            pointHoverBorderColor: 'white',
+            pointHoverBorderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              titleColor: '#a8b2d1',
+              bodyColor: 'white',
+              borderColor: '#667eea',
+              borderWidth: 2,
+              padding: 15,
+              displayColors: false,
+              titleFont: { size: 14 },
+              bodyFont: { size: 16 },
+              callbacks: {
+                label: (ctx) => '$' + ctx.parsed.y.toFixed(2)
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              grid: { color: 'rgba(255, 255, 255, 0.1)' },
+              ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 12 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.1)' },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.6)',
+                font: { size: 12 },
+                callback: (val) => '$' + val.toFixed(2)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // UTILITIES
+    // ==========================================
+    
+    function formatLarge(num) {
+      if (!num && num !== 0) return 'N/A';
+      if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+      if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+      if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+      return `$${num.toLocaleString()}`;
+    }
+
+    async function changeTimeRange(range) {
+      currentTimeRange = range;
+      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (currentSymbol) {
+        try {
+          const chartData = await fetchYahooChart(currentSymbol, range);
+          displayChart(chartData);
+        } catch (e) {
+          console.error('Chart update error:', e);
+        }
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    function showError(msg) {
+      document.getElementById('errorBox').innerHTML = `<div class="error-box"><strong>❌ Error:</strong> ${msg}<br><br>Make sure the stock symbol is valid (e.g., AAPL, TSLA, MSFT)</div>`;
+    }
+
+    function hideError() {
+      document.getElementById('errorBox').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
