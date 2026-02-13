@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Debug Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+    }
+    .error { color: #ff0000; border-color: #ff0000; }
+    .success { color: #00ff00; border-color: #00ff00; }
+    .warning { color: #ffaa00; border-color: #ffaa00; }
+    pre {
+      background: #000;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 JSON File Debug Test</h1>
+  
+  <div id="status"></div>
+  
+  <script>
+    const statusDiv = document.getElementById('status');
+    
+    function log(message, type = 'status') {
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.innerHTML = message;
+      statusDiv.appendChild(div);
+    }
+    
+    async function testJSON() {
+      log('🔍 Testing JSON file...', 'status');
+      
+      // Test 1: Can we fetch the file?
+      try {
+        log('📡 Attempting to fetch stock-analysis-data.json...', 'status');
+        
+        const response = await fetch('stock-analysis-data.json');
+        
+        log(`✅ Fetch response status: ${response.status}`, 
+            response.ok ? 'success' : 'error');
+        
+        if (!response.ok) {
+          log('❌ File not found or not accessible!', 'error');
+          log('Make sure stock-analysis-data.json is in the same folder as this HTML file', 'warning');
+          return;
+        }
+        
+        // Test 2: Can we parse it as JSON?
+        let data;
+        try {
+          data = await response.json();
+          log('✅ JSON parsed successfully!', 'success');
+        } catch (e) {
+          log(`❌ JSON parse error: ${e.message}`, 'error');
+          log('The file exists but is not valid JSON', 'error');
+          return;
+        }
+        
+        // Test 3: Check structure
+        log(`📊 Data structure:`, 'status');
+        log(`<pre>${JSON.stringify({
+          lastUpdated: data.lastUpdated,
+          totalStocks: data.totalStocks,
+          dataVersion: data.dataVersion,
+          hasStocksObject: !!data.stocks,
+          stocksKeys: data.stocks ? Object.keys(data.stocks).length : 0
+        }, null, 2)}</pre>`, 'status');
+        
+        // Test 4: Check if stocks exist
+        if (!data.stocks) {
+          log('❌ No "stocks" object found in JSON!', 'error');
+          return;
+        }
+        
+        const stockSymbols = Object.keys(data.stocks);
+        log(`✅ Found ${stockSymbols.length} stocks in database`, 'success');
+        log(`📈 Stocks: ${stockSymbols.slice(0, 10).join(', ')}${stockSymbols.length > 10 ? '...' : ''}`, 'status');
+        
+        // Test 5: Check AAPL data quality
+        if (data.stocks.AAPL) {
+          const aapl = data.stocks.AAPL;
+          log(`<br>🍎 <strong>AAPL Data Check:</strong>`, 'status');
+          log(`<pre>${JSON.stringify({
+            name: aapl.name,
+            price: aapl.price,
+            marketCap: aapl.marketCap,
+            pe: aapl.pe,
+            revenue: aapl.revenue,
+            grossMargin: aapl.grossMargin
+          }, null, 2)}</pre>`, 'status');
+          
+          if (aapl.marketCap === 0 || aapl.marketCap === '0') {
+            log('⚠️ WARNING: AAPL marketCap is 0! This is the OLD broken file!', 'warning');
+            log('You need to upload the NEW file created by yfinance script', 'warning');
+          } else {
+            log(`✅ AAPL data looks good! Market cap: $${(aapl.marketCap / 1e9).toFixed(1)}B`, 'success');
+          }
+        } else {
+          log('⚠️ AAPL not found in database', 'warning');
+        }
+        
+        // Test 6: Check BABA
+        if (data.stocks.BABA) {
+          const baba = data.stocks.BABA;
+          log(`<br>🐘 <strong>BABA Data Check:</strong>`, 'status');
+          log(`<pre>${JSON.stringify({
+            name: baba.name,
+            price: baba.price,
+            marketCap: baba.marketCap,
+            pe: baba.pe,
+            revenue: baba.revenue
+          }, null, 2)}</pre>`, 'status');
+          
+          if (baba.marketCap === 0 || baba.marketCap === '0') {
+            log('⚠️ WARNING: BABA marketCap is 0! Upload the NEW file!', 'warning');
+          } else {
+            log(`✅ BABA data looks good! Market cap: $${(baba.marketCap / 1e9).toFixed(1)}B`, 'success');
+          }
+        } else {
+          log('❌ BABA not found in database!', 'error');
+          log('Make sure you included BABA in your stock list when running the script', 'warning');
+        }
+        
+        log('<br>═══════════════════════════════', 'status');
+        log('✅ <strong>DIAGNOSIS COMPLETE</strong>', 'success');
+        
+      } catch (error) {
+        log(`❌ Unexpected error: ${error.message}`, 'error');
+        log(`<pre>${error.stack}</pre>`, 'error');
+      }
+    }
+    
+    // Run test on page load
+    testJSON();
+  </script>
+</body>
+</html>

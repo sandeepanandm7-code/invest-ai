@@ -1,0 +1,51 @@
+name: Update Stock Database Daily
+
+on:
+  schedule:
+    # Run every day at 2 AM EST (after market close + settlement)
+    - cron: '0 7 * * *'  # 7 AM UTC = 2 AM EST
+  
+  workflow_dispatch:  # Allow manual triggering
+  
+  push:
+    paths:
+      - 'fetch-all-tickers.py'  # Run when script is updated
+
+jobs:
+  update-stock-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Run stock data fetcher
+        run: |
+          echo "🚀 Starting stock database update..."
+          python3 fetch-all-tickers.py
+          echo "✅ Data collection complete!"
+      
+      - name: Check if data changed
+        id: check_changes
+        run: |
+          git diff --quiet stock-analysis-data.json || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add stock-analysis-data.json
+          git commit -m "🤖 Auto-update stock data - $(date +'%Y-%m-%d %H:%M')"
+          git push
+      
+      - name: Summary
+        run: |
+          echo "📊 Stock database updated successfully!"
+          echo "📅 Last updated: $(date)"
+          ls -lh stock-analysis-data.json
