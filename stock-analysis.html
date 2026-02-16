@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InvestIQ - AI-Powered Stock Analysis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #1e293b;
+      --darker: #0f172a;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --border: #e2e8f0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    
+    /* Modern Navigation */
+    nav {
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(10px);
+      padding: 16px 40px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      text-decoration: none;
+      color: var(--gray);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    
+    .nav-links a:hover {
+      background: var(--light);
+      color: var(--primary);
+    }
+    
+    .nav-links a.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 40px auto;
+      padding: 0 40px;
+    }
+    
+    /* Main Content Area */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    /* Modern Cards */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+    
+    .card-header {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+    
+    /* Search Box */
+    .search-container {
+      display: flex;
+      gap: 12px;
+    }
+    
+    input {
+      flex: 1;
+      padding: 14px 20px;
+      font-size: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s;
+      background: var(--light);
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    button {
+      padding: 14px 28px;
+      font-size: 1rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* Modern Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--light);
+      padding: 8px;
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-radius: 8px;
+      white-space: nowrap;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    
+    .tab:hover {
+      background: white;
+      color: var(--primary);
+    }
+    
+    .tab.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Content Area */
+    .content-area {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    
+    .content-area.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Modern Tables */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+    
+    th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 14px;
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    th:first-child {
+      border-radius: 8px 0 0 0;
+    }
+    
+    th:last-child {
+      border-radius: 0 8px 0 0;
+    }
+    
+    td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    tr:hover {
+      background: var(--light);
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .historical {
+      background: #fafafa;
+    }
+    
+    .projected {
+      background: #eff6ff;
+    }
+    
+    .calculated {
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    /* Metric Cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .metric-card {
+      background: linear-gradient(135deg, var(--light) 0%, white 100%);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    
+    .metric-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    
+    .metric-label {
+      color: var(--gray);
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .metric-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    
+    /* AI Chatbot */
+    .chatbot-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    
+    .chat-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+    
+    .chat-card.minimized {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .chat-card.expanded {
+      width: 380px;
+      height: 600px;
+    }
+    
+    .chat-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 20px;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-radius 0.3s;
+    }
+    
+    .chat-card.minimized .chat-header {
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      padding: 0;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+    
+    .chat-card.minimized .chat-header h3,
+    .chat-card.minimized .chat-header .subtitle,
+    .chat-card.minimized .chat-status {
+      display: none;
+    }
+    
+    .chat-header-icon {
+      font-size: 1.5rem;
+    }
+    
+    .minimize-btn {
+      margin-left: auto;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+    
+    .minimize-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .chat-card.minimized .minimize-btn {
+      display: none;
+    }
+    
+    .chat-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .chat-status {
+      margin-left: auto;
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--light);
+    }
+    
+    .chat-card.minimized .chat-messages,
+    .chat-card.minimized .chat-input-container {
+      display: none;
+    }
+    
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 85%;
+      animation: slideIn 0.3s;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    
+    .message.ai .message-avatar {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+    
+    .message.user .message-avatar {
+      background: linear-gradient(135deg, var(--accent), var(--success));
+    }
+    
+    .message-content {
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+    
+    .message.user .message-content {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+    
+    .chat-input-container {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      background: white;
+      border-radius: 0 0 16px 16px;
+    }
+    
+    .chat-input-wrapper {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      resize: none;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .send-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(99, 102, 241, 0.4);
+    }
+    
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Learn Boxes */
+    .learn-box {
+      background: linear-gradient(135deg, #fff7ed, #fed7aa);
+      border-left: 4px solid var(--warning);
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+    }
+    
+    .learn-box h3 {
+      color: #c2410c;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+    }
+    
+    /* Messages */
+    .message-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border-left: 4px solid;
+    }
+    
+    .success {
+      background: #f0fdf4;
+      border-color: var(--success);
+      color: #166534;
+    }
+    
+    .error {
+      background: #fef2f2;
+      border-color: var(--danger);
+      color: #991b1b;
+    }
+    
+    .warning {
+      background: #fffbeb;
+      border-color: var(--warning);
+      color: #92400e;
+    }
+    
+    /* Loading */
+    .loading {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: loading 1.4s infinite;
+    }
+    
+    @keyframes loading {
+      0%, 80%, 100% { opacity: 0; }
+      40% { opacity: 1; }
+    }
+    
+    .loading::before,
+    .loading::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: loading 1.4s infinite;
+    }
+    
+    .loading::before {
+      left: -12px;
+      animation-delay: -0.32s;
+    }
+    
+    .loading::after {
+      left: 12px;
+      animation-delay: 0.32s;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 20px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .chat-card.expanded {
+        width: calc(100vw - 40px);
+        height: 500px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <div class="logo">
+        <span>🎓</span>
+        <span>InvestIQ</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="https://sandeepanandm7-code.github.io/investai-app/">Home</a></li>
+        <li><a href="stock-analysis-modern.html" class="active">Stock Analysis</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Search Card -->
+      <div class="card">
+        <div class="card-header">🔍 Analyze Any Company</div>
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="symbolInput" 
+            placeholder="Enter stock symbol (e.g., AAPL, BABA, MSFT...)"
+            onkeypress="if(event.key==='Enter') analyzeStock()"
+          >
+          <button onclick="analyzeStock()">Analyze</button>
+        </div>
+      </div>
+
+      <div id="messageBox"></div>
+
+      <!-- Analysis Results -->
+      <div id="analysisSection" style="display: none;">
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div class="tabs" style="border-radius: 0;">
+            <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+            <button class="tab" onclick="switchTab('income')">💰 Income</button>
+            <button class="tab" onclick="switchTab('balance')">🏦 Balance</button>
+            <button class="tab" onclick="switchTab('cashflow')">💵 Cash Flow</button>
+            <button class="tab" onclick="switchTab('integration')">🔗 Integration</button>
+            <button class="tab" onclick="switchTab('dcf')">📈 DCF</button>
+            <button class="tab" onclick="switchTab('assumptions')">⚙️ Assumptions</button>
+          </div>
+
+          <div style="padding: 32px;">
+            <div id="overview-content" class="content-area active">
+              <div id="overviewData"></div>
+            </div>
+            <div id="income-content" class="content-area">
+              <div id="incomeData"></div>
+            </div>
+            <div id="balance-content" class="content-area">
+              <div id="balanceData"></div>
+            </div>
+            <div id="cashflow-content" class="content-area">
+              <div id="cashflowData"></div>
+            </div>
+            <div id="integration-content" class="content-area">
+              <div id="integrationData"></div>
+            </div>
+            <div id="dcf-content" class="content-area">
+              <div id="dcfData"></div>
+            </div>
+            <div id="assumptions-content" class="content-area">
+              <div id="assumptionsData"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Chatbot -->
+    <div class="chatbot-container">
+      <div class="chat-card minimized" id="chatCard">
+        <div class="chat-header" onclick="toggleChat()">
+          <span class="chat-header-icon">🤖</span>
+          <div>
+            <h3>AI Financial Assistant</h3>
+            <div class="subtitle" style="font-size: 0.75rem; opacity: 0.9;">Ask me anything about finance</div>
+          </div>
+          <div class="chat-status"></div>
+          <button class="minimize-btn" onclick="event.stopPropagation(); toggleChat()">−</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="message ai">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <strong>Hi! I'm your AI financial assistant.</strong><br><br>
+              I can help you:
+              <ul style="margin: 10px 0 0 20px;">
+                <li>Understand financial metrics</li>
+                <li>Explain company analysis</li>
+                <li>Answer finance questions</li>
+                <li>Guide you through the platform</li>
+              </ul>
+              What would you like to know?
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea 
+              id="chatInput" 
+              class="chat-input" 
+              placeholder="Ask about P/E ratio, DCF, or any financial concept..."
+              rows="1"
+              onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+            ></textarea>
+            <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+              <span>Send</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let stockDatabase = null;
+    let currentStock = null;
+    let conversationHistory = [];
+    
+    // Toggle chat minimized/expanded
+    function toggleChat() {
+      const chatCard = document.getElementById('chatCard');
+      chatCard.classList.toggle('minimized');
+      chatCard.classList.toggle('expanded');
+      
+      // Scroll to bottom when expanding
+      if (chatCard.classList.contains('expanded')) {
+        setTimeout(() => {
+          const messages = document.getElementById('chatMessages');
+          messages.scrollTop = messages.scrollHeight;
+        }, 100);
+      }
+    }
+    
+    // Load database
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const response = await fetch('financial-model-data.json?' + Date.now());
+        
+        if (!response.ok) {
+          showMessage('Database loading... Please upload financial-model-data.json', 'warning');
+          return;
+        }
+        
+        const data = await response.json();
+        stockDatabase = data.stocks;
+        
+        showMessage(`✅ Ready! ${Object.keys(stockDatabase).length} companies loaded`, 'success');
+        setTimeout(() => document.getElementById('messageBox').innerHTML = '', 3000);
+        
+      } catch (error) {
+        showMessage('Error loading database: ' + error.message, 'error');
+      }
+    });
+    
+    // AI Chat Functions - Intelligent Educational Responses
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      // Add user message
+      addMessage(message, 'user');
+      input.value = '';
+      
+      // Disable send button
+      const sendBtn = document.getElementById('sendBtn');
+      sendBtn.disabled = true;
+      
+      // Add loading indicator
+      const loadingMsg = addMessage('Thinking...', 'ai', true);
+      
+      // Simulate thinking delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Remove loading
+      loadingMsg.remove();
+      
+      // Generate intelligent response
+      const response = generateIntelligentResponse(message);
+      addMessage(response, 'ai');
+      
+      // Re-enable send button
+      sendBtn.disabled = false;
+    }
+    
+    function generateIntelligentResponse(question) {
+      const q = question.toLowerCase();
+      
+      // Get context from current stock if available
+      let stockContext = '';
+      if (currentStock) {
+        const latest = currentStock.incomeStatements[0] || {};
+        const metrics = currentStock.currentMetrics;
+        stockContext = `
+For ${currentStock.symbol} (${currentStock.name}):
+- Price: $${currentStock.price}
+- Market Cap: $${(currentStock.marketCap/1e9).toFixed(1)}B
+- Revenue: $${(latest.revenue/1e9).toFixed(1)}B
+- Net Income: $${(latest.netIncome/1e9).toFixed(1)}B
+- P/E Ratio: ${metrics.pe}
+- ROE: ${metrics.roe}%
+        `;
+      }
+      
+      // P/E Ratio questions
+      if (q.includes('p/e') || q.includes('pe ratio') || q.includes('price to earnings')) {
+        if (currentStock) {
+          const pe = currentStock.currentMetrics.pe;
+          return `Great question! ${currentStock.symbol}'s P/E ratio is ${pe}.
+
+**What does this mean?**
+The P/E ratio shows how much investors are willing to pay for $1 of earnings. ${currentStock.symbol}'s P/E of ${pe} means investors pay $${pe} for every $1 the company earns.
+
+**Is ${pe} good?**
+- Tech companies: 20-30 is normal
+- Value stocks: 10-15 is typical
+- High P/E (>30): Investors expect high growth
+- Low P/E (<15): May be undervalued OR facing problems
+
+${currentStock.symbol}'s P/E of ${pe} ${pe > 25 ? 'suggests investors expect strong growth' : pe > 15 ? 'is fairly valued for the market' : 'might indicate it\'s undervalued or facing headwinds'}.`;
+        }
+        return `**P/E Ratio (Price-to-Earnings)** tells you how expensive a stock is relative to its profits.
+
+**Formula:** Stock Price ÷ Earnings Per Share
+
+**Example:**
+- Stock price: $100
+- Annual earnings: $5 per share
+- P/E = 100 ÷ 5 = 20
+
+This means you're paying $20 for every $1 of annual profit.
+
+**Quick Guide:**
+- P/E < 15: Potentially undervalued (or troubled)
+- P/E 15-25: Fairly valued
+- P/E > 25: Growth expectations (or overvalued)
+
+Analyze a stock to see its specific P/E ratio!`;
+      }
+      
+      // ROE questions
+      if (q.includes('roe') || q.includes('return on equity')) {
+        if (currentStock) {
+          const roe = currentStock.currentMetrics.roe;
+          return `${currentStock.symbol}'s Return on Equity (ROE) is ${roe}%.
+
+**What this means:**
+ROE shows how efficiently a company uses shareholder money to generate profit. ${currentStock.symbol} generates $${roe} of profit for every $100 of shareholder equity.
+
+**Is ${roe}% good?**
+- Excellent: >20%
+- Good: 15-20%
+- Average: 10-15%
+- Concerning: <10%
+
+${currentStock.symbol}'s ROE of ${roe}% is ${roe >= 20 ? 'excellent! The company is very efficient' : roe >= 15 ? 'good - solid profitability' : roe >= 10 ? 'average for most companies' : 'below average - may indicate inefficiency'}.
+
+**Pro Tip:** Compare ROE to competitors in the same industry for better context.`;
+        }
+        return `**ROE (Return on Equity)** measures how well a company uses shareholder money to generate profits.
+
+**Formula:** (Net Income ÷ Shareholder Equity) × 100
+
+**Example:**
+- Net Income: $50M
+- Shareholder Equity: $250M
+- ROE = (50 ÷ 250) × 100 = 20%
+
+This means the company generates $20 profit for every $100 of shareholder investment.
+
+**Benchmarks:**
+- >20%: Excellent
+- 15-20%: Good
+- 10-15%: Average
+- <10%: Concerning
+
+Warren Buffett looks for companies with ROE > 15% consistently!`;
+      }
+      
+      // DCF questions
+      if (q.includes('dcf') || q.includes('discounted cash flow') || q.includes('valuation')) {
+        return `**DCF (Discounted Cash Flow)** is the gold standard for valuing companies!
+
+**The Concept:**
+A company is worth the sum of all its future cash flows, adjusted for the time value of money.
+
+**Why "Discounted"?**
+$100 today is worth MORE than $100 next year because you could invest it. DCF accounts for this.
+
+**Simple Example:**
+Company will generate:
+- Year 1: $10M
+- Year 2: $11M
+- Year 3: $12M
+- ...and so on
+
+DCF calculates: "What's all that future cash worth TODAY?"
+
+**Key Inputs:**
+1. **Free Cash Flow** - Cash available after expenses
+2. **Growth Rate** - How fast cash flow grows
+3. **Discount Rate (WACC)** - Your required return
+4. **Terminal Value** - Value after year 5
+
+**The Formula:**
+PV = CF₁/(1+r)¹ + CF₂/(1+r)² + ... + Terminal Value
+
+Check the DCF tab to see a real calculation for ${currentStock ? currentStock.symbol : 'any stock'}!`;
+      }
+      
+      // Free Cash Flow
+      if (q.includes('free cash flow') || q.includes('fcf')) {
+        if (currentStock) {
+          const latest = currentStock.cashFlows[0] || {};
+          const fcf = latest.freeCashFlow;
+          return `${currentStock.symbol}'s Free Cash Flow is $${(fcf/1e9).toFixed(1)}B.
+
+**What is Free Cash Flow?**
+It's the cash left over after the company pays all its bills AND invests in maintaining/growing the business.
+
+**Formula:**
+Operating Cash Flow - Capital Expenditures = Free Cash Flow
+
+For ${currentStock.symbol}:
+- Operating Cash Flow: $${(latest.operatingCashFlow/1e9).toFixed(1)}B
+- CapEx: $${(Math.abs(latest.capex)/1e9).toFixed(1)}B
+- **Free Cash Flow: $${(fcf/1e9).toFixed(1)}B**
+
+**Why it matters:**
+FCF can be used to:
+- Pay dividends to shareholders
+- Buy back stock
+- Pay down debt
+- Fund acquisitions
+- Build cash reserves
+
+Warren Buffett says: "In the end, cash is king." FCF shows how much cash a company truly generates!`;
+        }
+        return `**Free Cash Flow (FCF)** is the cash a company generates after paying for operations and capital investments.
+
+**Formula:**
+FCF = Operating Cash Flow - Capital Expenditures
+
+**Example:**
+- Operating Cash Flow: $100M (cash from sales)
+- CapEx: $30M (new equipment, buildings)
+- **Free Cash Flow: $70M** ✅
+
+**Why it's important:**
+1. Shows real cash generation (not just accounting profits)
+2. Can be paid to shareholders as dividends
+3. Used for growth, acquisitions, debt repayment
+4. More reliable than "Net Income"
+
+**What's good FCF?**
+- Positive & growing: Excellent ✅
+- Positive but flat: Okay 😐
+- Negative: Concerning ❌ (unless early-stage growth company)
+
+Analyze a stock to see its FCF in the Cash Flow tab!`;
+      }
+      
+      // Balance Sheet
+      if (q.includes('balance sheet') || q.includes('assets') || q.includes('liabilities')) {
+        return `**The Balance Sheet** shows what a company owns and owes at a point in time.
+
+**The Golden Equation:**
+Assets = Liabilities + Equity
+
+**Think of it like your personal finances:**
+- **Assets**: Your house, car, savings ($500K)
+- **Liabilities**: Mortgage, car loan ($300K)
+- **Equity**: Your net worth ($200K)
+
+**Assets** = Things the company owns:
+- Cash
+- Accounts Receivable (money owed to them)
+- Inventory
+- Property, equipment, buildings
+
+**Liabilities** = Money the company owes:
+- Accounts Payable (bills to pay)
+- Debt
+- Other obligations
+
+**Equity** = Shareholders' ownership:
+What's left after paying all debts
+
+**Key Ratio:**
+Debt-to-Equity = Total Debt ÷ Total Equity
+- <0.5: Conservative (low debt)
+- 0.5-1.0: Moderate
+- >1.0: Aggressive (high debt)
+
+Check the Balance Sheet tab for ${currentStock ? currentStock.symbol + '\'s' : 'any company\'s'} complete breakdown!`;
+      }
+      
+      // Income Statement
+      if (q.includes('income statement') || q.includes('revenue') || q.includes('profit')) {
+        if (currentStock) {
+          const latest = currentStock.incomeStatements[0] || {};
+          const revenue = latest.revenue;
+          const netIncome = latest.netIncome;
+          const margin = (netIncome / revenue * 100).toFixed(1);
+          
+          return `Let me break down ${currentStock.symbol}'s Income Statement:
+
+**Revenue:** $${(revenue/1e9).toFixed(1)}B
+This is the total sales - the starting point.
+
+**Net Income:** $${(netIncome/1e9).toFixed(1)}B
+This is the bottom line - actual profit after ALL expenses.
+
+**Net Profit Margin:** ${margin}%
+For every $100 of sales, ${currentStock.symbol} keeps $${margin} as profit.
+
+**The Flow:**
+Revenue $${(revenue/1e9).toFixed(1)}B
+- Cost of Goods Sold
+= Gross Profit
+- Operating Expenses (salaries, marketing, R&D)
+= EBIT (Operating Profit)
+- Interest & Taxes
+= **Net Income $${(netIncome/1e9).toFixed(1)}B** ✅
+
+Check the Income Statement tab to see all 5 years and how margins are trending!`;
+        }
+        return `**The Income Statement** shows how much money a company made (or lost) over a period.
+
+**The Flow:**
+1. **Revenue** (Sales)
+   - Money from selling products/services
+   
+2. **- Cost of Revenue** (COGS)
+   - Direct costs to make the product
+   
+3. **= Gross Profit**
+   - Revenue minus direct costs
+   
+4. **- Operating Expenses**
+   - Salaries, rent, marketing, R&D
+   
+5. **= EBIT** (Operating Income)
+   - Profit from operations
+   
+6. **- Interest & Taxes**
+   - Financing costs & government
+   
+7. **= Net Income** (The Bottom Line!) 💰
+   - Final profit to shareholders
+
+**Key Margins:**
+- Gross Margin = Gross Profit ÷ Revenue
+- Operating Margin = EBIT ÷ Revenue
+- Net Margin = Net Income ÷ Revenue
+
+Higher margins = More efficient company!
+
+Analyze a stock to see 5 years of income statements!`;
+      }
+      
+      // Market Cap
+      if (q.includes('market cap') || q.includes('market capitalization')) {
+        if (currentStock) {
+          const mc = currentStock.marketCap;
+          return `${currentStock.symbol}'s Market Cap is $${(mc/1e9).toFixed(1)}B.
+
+**What is Market Cap?**
+It's the total value of ALL shares of the company.
+
+**Formula:**
+Market Cap = Share Price × Shares Outstanding
+
+For ${currentStock.symbol}:
+- Price: $${currentStock.price}
+- Shares: ${(currentStock.sharesOutstanding/1e9).toFixed(2)}B
+- **Market Cap: $${(mc/1e9).toFixed(1)}B**
+
+**Company Size Categories:**
+${mc >= 200e9 ? '🏆 **Mega Cap** (>$200B) - Blue chip giant' :
+  mc >= 10e9 ? '🏢 **Large Cap** ($10B-$200B) - Established company' :
+  mc >= 2e9 ? '🏪 **Mid Cap** ($2B-$10B) - Growing company' :
+  '🏠 **Small Cap** (<$2B) - Higher risk/reward'}
+
+Market cap tells you the company's size, not necessarily its value!`;
+        }
+        return `**Market Capitalization (Market Cap)** is the total value of all shares.
+
+**Formula:**
+Market Cap = Share Price × Total Shares Outstanding
+
+**Example:**
+- Share price: $100
+- Shares outstanding: 1 billion
+- Market Cap = $100 × 1B = $100 billion
+
+**Categories:**
+- **Mega Cap**: >$200B (Apple, Microsoft)
+- **Large Cap**: $10B-$200B (Most S&P 500)
+- **Mid Cap**: $2B-$10B (Growing companies)
+- **Small Cap**: <$2B (Higher risk/reward)
+
+**Common Mistake:**
+Market cap ≠ Company value!
+- Doesn't account for debt
+- Doesn't show profitability
+- Just shows stock market's opinion
+
+For true value, look at Enterprise Value = Market Cap + Debt - Cash`;
+      }
+      
+      // Equity Value vs Enterprise Value
+      if (q.includes('equity value') || q.includes('enterprise value')) {
+        return `Great question! These are often confused:
+
+**Equity Value** = Market Cap
+Just the value of shares. What shareholders own.
+
+**Enterprise Value** = Market Cap + Debt - Cash
+The TRUE cost to buy the entire company.
+
+**Why the difference matters:**
+
+**Example 1: Low-debt company**
+- Market Cap: $100B
+- Debt: $10B
+- Cash: $20B
+- Enterprise Value = 100 + 10 - 20 = **$90B**
+(Cheaper than market cap because you get $20B cash!)
+
+**Example 2: High-debt company**
+- Market Cap: $100B
+- Debt: $50B
+- Cash: $5B
+- Enterprise Value = 100 + 50 - 5 = **$145B**
+(More expensive! You inherit the debt)
+
+**When to use each:**
+- **Equity Value**: For per-share metrics (P/E ratio)
+- **Enterprise Value**: For operating metrics (EV/EBITDA)
+
+${currentStock ? `
+For ${currentStock.symbol}:
+This would account for their debt and cash to show the true acquisition cost.
+` : ''}`;
+      }
+      
+      // Working Capital
+      if (q.includes('working capital') || q.includes('current assets') || q.includes('current liabilities')) {
+        return `**Working Capital** is the money available for day-to-day operations.
+
+**Formula:**
+Working Capital = Current Assets - Current Liabilities
+
+**Think of it as:**
+"Cash + stuff we can convert to cash quickly" MINUS "bills due soon"
+
+**Example:**
+Current Assets:
+- Cash: $50M
+- Accounts Receivable: $30M
+- Inventory: $20M
+- Total: $100M
+
+Current Liabilities:
+- Accounts Payable: $40M
+- Short-term debt: $20M
+- Total: $60M
+
+**Working Capital = $100M - $60M = $40M** ✅
+
+**What's good?**
+- Positive: Good! Can cover short-term obligations
+- Negative: Risky! May struggle to pay bills
+- Too high: Inefficient use of capital
+
+**Current Ratio** = Current Assets ÷ Current Liabilities
+- >2.0: Very safe
+- 1.5-2.0: Healthy
+- 1.0-1.5: Adequate
+- <1.0: Concerning
+
+${currentStock ? `Check ${currentStock.symbol}'s Balance Sheet tab to see their working capital position!` : ''}`;
+      }
+      
+      // Debt questions
+      if (q.includes('debt') && !q.includes('equity')) {
+        return `**Debt** is money a company borrowed and must pay back.
+
+**Types of Debt:**
+1. **Short-term** (Current Debt)
+   - Due within 1 year
+   - More risky (must pay soon)
+
+2. **Long-term Debt**
+   - Due after 1 year
+   - More manageable (time to generate cash)
+
+**Is debt bad?**
+Not necessarily! It depends:
+
+**Good Debt:**
+- Low interest rates
+- Used for growth (new factories, R&D)
+- Company generates enough cash to pay it
+
+**Bad Debt:**
+- High interest rates
+- Used to cover losses
+- Company struggles to make payments
+
+**Key Ratios:**
+
+**Debt-to-Equity:**
+= Total Debt ÷ Shareholder Equity
+- <0.5: Conservative
+- 0.5-1.0: Moderate
+- >1.0: Aggressive
+
+**Interest Coverage:**
+= EBIT ÷ Interest Expense
+- >10: Very safe
+- 5-10: Healthy
+- 2-5: Adequate
+- <2: Risky!
+
+${currentStock ? `
+${currentStock.symbol}'s Debt-to-Equity: ${currentStock.currentMetrics.debtToEquity}
+${currentStock.currentMetrics.debtToEquity < 0.5 ? 'Conservative debt levels ✅' : 
+  currentStock.currentMetrics.debtToEquity < 1.0 ? 'Moderate debt levels 😐' : 
+  'High debt - watch interest coverage! ⚠️'}
+` : ''}`;
+      }
+      
+      // General investment advice
+      if (q.includes('good investment') || q.includes('should i invest') || q.includes('buy or sell')) {
+        if (currentStock) {
+          return `I can't give direct investment advice, but I can help you analyze ${currentStock.symbol}!
+
+**What to consider:**
+
+**Valuation:**
+- P/E Ratio: ${currentStock.currentMetrics.pe} ${currentStock.currentMetrics.pe < 15 ? '(potentially undervalued)' : currentStock.currentMetrics.pe > 25 ? '(pricing in growth)' : '(fairly valued)'}
+
+**Profitability:**
+- ROE: ${currentStock.currentMetrics.roe}% ${currentStock.currentMetrics.roe > 15 ? '(strong!)' : '(moderate)'}
+
+**Financial Health:**
+- Debt/Equity: ${currentStock.currentMetrics.debtToEquity} ${currentStock.currentMetrics.debtToEquity < 1.0 ? '(manageable)' : '(watch closely)'}
+
+**Questions to ask yourself:**
+1. Do you understand the business?
+2. Does it have competitive advantages?
+3. Is management trustworthy?
+4. What's your time horizon?
+5. Does it fit your portfolio?
+
+**Remember:**
+- Diversify (don't put all eggs in one basket)
+- Invest for long-term (3-5+ years)
+- Only invest money you can afford to lose
+- Do your own research!
+
+Check all tabs to fully understand ${currentStock.symbol}'s financials!`;
+        }
+        return `I can help you analyze companies, but I can't give direct investment advice!
+
+**What I CAN do:**
+✅ Explain financial metrics
+✅ Show you how to read statements
+✅ Help you understand valuations
+✅ Teach you analysis techniques
+
+**What I CAN'T do:**
+❌ Tell you to buy or sell
+❌ Predict future prices
+❌ Guarantee returns
+❌ Replace your own research
+
+**General Investment Principles:**
+1. **Understand what you own** - If you can't explain it, don't buy it
+2. **Diversify** - Don't bet everything on one stock
+3. **Time horizon** - Investing is long-term (5+ years)
+4. **Risk tolerance** - Only invest what you can afford to lose
+5. **Do your homework** - Use this tool to research!
+
+**Start by:**
+1. Analyzing companies you understand
+2. Comparing them to competitors
+3. Looking at 5-year trends
+4. Calculating intrinsic value (DCF)
+
+Analyze a stock to practice your skills!`;
+      }
+      
+      // Default helpful response
+      return `Great question! I'm here to help you understand finance.
+
+**I can explain:**
+- Financial metrics (P/E, ROE, etc.)
+- Income statements, balance sheets, cash flows
+- DCF valuation models
+- How the three statements connect
+- Key ratios and what they mean
+
+**Try asking:**
+- "What does P/E ratio mean?"
+- "Explain free cash flow"
+- "What is ROE?"
+- "How does DCF work?"
+- "What's a good debt-to-equity ratio?"
+
+${currentStock ? `
+I can also explain ${currentStock.symbol}'s specific metrics - just ask about any number you see!
+` : `
+Analyze a stock first, then ask me questions about its specific financials!
+`}
+
+What would you like to learn?`;
+    }
+    
+    function addMessage(text, sender, isLoading = false) {
+      const messagesContainer = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = sender === 'ai' ? '🤖' : '👤';
+      
+      const content = document.createElement('div');
+      content.className = 'message-content';
+      
+      if (isLoading) {
+        content.innerHTML = '<div style="position: relative; padding: 10px;"><span class="loading"></span></div>';
+      } else {
+        content.textContent = text;
+      }
+      
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(content);
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      return messageDiv;
+    }
+    
+    // Analyze stock (same as before but simplified)
+    async function analyzeStock() {
+      const symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+      
+      if (!symbol) {
+        showMessage('Please enter a stock symbol', 'error');
+        return;
+      }
+      
+      if (!stockDatabase) {
+        showMessage('Database not loaded yet. Please wait...', 'warning');
+        return;
+      }
+      
+      if (!stockDatabase[symbol]) {
+        const available = Object.keys(stockDatabase).slice(0, 10).join(', ');
+        showMessage(`${symbol} not found. Try: ${available}...`, 'error');
+        return;
+      }
+      
+      currentStock = stockDatabase[symbol];
+      displayAnalysis(currentStock);
+      
+      document.getElementById('analysisSection').style.display = 'block';
+      document.getElementById('analysisSection').scrollIntoView({ behavior: 'smooth' });
+      
+      // Add AI message about the stock
+      addMessage(`I see you're analyzing ${currentStock.symbol}! Feel free to ask me anything about this company's financials.`, 'ai');
+    }
+    
+    // Display functions (abbreviated - same logic as before)
+    function displayAnalysis(stock) {
+      displayOverview(stock);
+      displayIncome(stock);
+      displayBalance(stock);
+      displayCashFlow(stock);
+      displayIntegration(stock);
+      displayDCF(stock);
+      displayAssumptions(stock);
+    }
+    
+    function displayOverview(stock) {
+      const metrics = stock.currentMetrics;
+      const latestIncome = stock.incomeStatements[0] || {};
+      const latestBalance = stock.balanceSheets[0] || {};
+      
+      document.getElementById('overviewData').innerHTML = `
+        <h2 style="font-size: 2rem; margin-bottom: 10px;">${stock.symbol} - ${stock.name}</h2>
+        <p style="color: var(--gray); margin-bottom: 30px;">${stock.sector} • ${stock.industry}</p>
+        
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Stock Price</div>
+            <div class="metric-value">$${stock.price.toFixed(2)}</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Market Cap</div>
+            <div class="metric-value">$${(stock.marketCap / 1e9).toFixed(1)}B</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">P/E Ratio</div>
+            <div class="metric-value">${metrics.pe || 'N/A'}</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Revenue (TTM)</div>
+            <div class="metric-value">$${(latestIncome.revenue / 1e9).toFixed(1)}B</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Net Income</div>
+            <div class="metric-value">$${(latestIncome.netIncome / 1e9).toFixed(1)}B</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Total Assets</div>
+            <div class="metric-value">$${(latestBalance.totalAssets / 1e9).toFixed(1)}B</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">ROE</div>
+            <div class="metric-value">${metrics.roe}%</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Debt/Equity</div>
+            <div class="metric-value">${metrics.debtToEquity || 'N/A'}</div>
+          </div>
+        </div>
+        
+        <div class="learn-box" style="margin-top: 30px;">
+          <h3>💡 Ask the AI</h3>
+          <p>Want to understand these metrics better? Try asking the AI chatbot:</p>
+          <ul style="margin-left: 20px; margin-top: 10px;">
+            <li>"What does P/E ratio mean?"</li>
+            <li>"Is ${stock.symbol}'s ROE good?"</li>
+            <li>"Explain ${stock.symbol}'s market cap"</li>
+          </ul>
+        </div>
+      `;
+    }
+    
+    function displayIncome(stock) {
+      const statements = stock.incomeStatements.slice(0, 5);
+      
+      let tableHTML = `
+        <h2 style="margin-bottom: 20px;">Income Statement</h2>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              ${statements.map(s => `<th>${s.date.substring(0, 4)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Revenue</strong></td>
+              ${statements.map(s => `<td class="historical">$${(s.revenue / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Cost of Revenue</td>
+              ${statements.map(s => `<td class="historical">$${(s.costOfRevenue / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td><strong>Gross Profit</strong></td>
+              ${statements.map(s => `<td class="calculated">$${(s.grossProfit / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td style="padding-left: 30px; color: var(--gray);">Gross Margin %</td>
+              ${statements.map(s => `<td>${((s.grossProfit / s.revenue) * 100).toFixed(1)}%</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Operating Expenses</td>
+              ${statements.map(s => `<td class="historical">$${(s.operatingExpenses / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td><strong>EBIT</strong></td>
+              ${statements.map(s => `<td class="calculated">$${(s.ebit / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Interest Expense</td>
+              ${statements.map(s => `<td class="historical">$${(Math.abs(s.interestExpense) / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Pre-tax Income</td>
+              ${statements.map(s => `<td class="calculated">$${(s.pretaxIncome / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Income Tax</td>
+              ${statements.map(s => `<td class="historical">$${(s.incomeTax / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td><strong>Net Income</strong></td>
+              ${statements.map(s => `<td class="calculated" style="font-size: 1rem; background: #f0fdf4;">$${(s.netIncome / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td style="padding-left: 30px; color: var(--gray);">Net Margin %</td>
+              ${statements.map(s => `<td style="font-weight: 600;">${((s.netIncome / s.revenue) * 100).toFixed(1)}%</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('incomeData').innerHTML = tableHTML;
+    }
+    
+    function displayBalance(stock) {
+      const statements = stock.balanceSheets.slice(0, 5);
+      
+      let tableHTML = `
+        <h2 style="margin-bottom: 20px;">Balance Sheet</h2>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              ${statements.map(s => `<th>${s.date.substring(0, 4)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="${statements.length + 1}" style="background: var(--primary); color: white; font-weight: 700; padding: 10px;">ASSETS</td></tr>
+            <tr>
+              <td>Cash & Equivalents</td>
+              ${statements.map(s => `<td class="historical">$${(s.cashAndEquivalents / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Accounts Receivable</td>
+              ${statements.map(s => `<td class="historical">$${(s.accountsReceivable / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Inventory</td>
+              ${statements.map(s => `<td class="historical">$${(s.inventory / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>PP&E (Net)</td>
+              ${statements.map(s => `<td class="historical">$${(s.ppe / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td><strong>Total Assets</strong></td>
+              ${statements.map(s => `<td class="calculated" style="font-weight: 700; background: #eff6ff;">$${(s.totalAssets / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            
+            <tr><td colspan="${statements.length + 1}" style="background: var(--primary); color: white; font-weight: 700; padding: 10px; padding-top: 20px;">LIABILITIES</td></tr>
+            <tr>
+              <td>Accounts Payable</td>
+              ${statements.map(s => `<td class="historical">$${(s.accountsPayable / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Long-term Debt</td>
+              ${statements.map(s => `<td class="historical">$${(s.longTermDebt / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td><strong>Total Liabilities</strong></td>
+              ${statements.map(s => `<td class="calculated" style="font-weight: 700;">$${(s.totalLiabilities / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            
+            <tr><td colspan="${statements.length + 1}" style="background: var(--primary); color: white; font-weight: 700; padding: 10px; padding-top: 20px;">EQUITY</td></tr>
+            <tr>
+              <td><strong>Total Equity</strong></td>
+              ${statements.map(s => `<td class="calculated" style="font-weight: 700; background: #f0fdf4;">$${(s.totalEquity / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            
+            <tr>
+              <td><strong>CHECK: Assets = Liab + Equity</strong></td>
+              ${statements.map(s => {
+                const balanced = Math.abs(s.totalAssets - (s.totalLiabilities + s.totalEquity)) < 1e6;
+                return `<td style="font-weight: 700; color: ${balanced ? 'var(--success)' : 'var(--danger)'};">${balanced ? '✓ PASS' : '✗ FAIL'}</td>`;
+              }).join('')}
+            </tr>
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('balanceData').innerHTML = tableHTML;
+    }
+    
+    function displayCashFlow(stock) {
+      const statements = stock.cashFlows.slice(0, 5);
+      
+      let tableHTML = `
+        <h2 style="margin-bottom: 20px;">Cash Flow Statement</h2>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Cash Flow Item</th>
+              ${statements.map(s => `<th>${s.date.substring(0, 4)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Operating Cash Flow</strong></td>
+              ${statements.map(s => `<td class="historical">$${(s.operatingCashFlow / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Capital Expenditures</td>
+              ${statements.map(s => `<td class="historical">($${(Math.abs(s.capex) / 1e9).toFixed(2)}B)</td>`).join('')}
+            </tr>
+            <tr>
+              <td><strong>Free Cash Flow</strong></td>
+              ${statements.map(s => `<td class="calculated" style="font-weight: 700; background: #f0fdf4;">$${(s.freeCashFlow / 1e9).toFixed(2)}B</td>`).join('')}
+            </tr>
+            <tr>
+              <td>Dividends Paid</td>
+              ${statements.map(s => `<td class="historical">($${(Math.abs(s.dividendsPaid) / 1e9).toFixed(2)}B)</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('cashflowData').innerHTML = tableHTML;
+    }
+    
+    function displayIntegration(stock) {
+      document.getElementById('integrationData').innerHTML = `
+        <h2 style="margin-bottom: 20px;">🔗 How the Three Statements Connect</h2>
+        
+        <div style="background: var(--light); padding: 30px; border-radius: 12px; margin: 30px 0;">
+          <pre style="font-size: 0.85rem; line-height: 1.8; color: var(--dark); overflow-x: auto;">
+┌──────────────────────────────────────────────────────────────────┐
+│                      INCOME STATEMENT                             │
+│                                                                   │
+│  Revenue                                                          │
+│  - Cost of Revenue                                                │
+│  = Gross Profit                                                   │
+│  - Operating Expenses                                             │
+│  = EBIT                                                           │
+│  - Interest Expense  ←──────────────────┐                        │
+│  = Pre-tax Income                       │                         │
+│  × (1 - Tax Rate)                       │                         │
+│  = NET INCOME  ─────────┐               │                         │
+└─────────────────────────┼───────────────┼─────────────────────────┘
+                          │               │
+                          ↓               │
+┌──────────────────────────────────────────────────────────────────┐
+│                   CASH FLOW STATEMENT                             │
+│                                                                   │
+│  Net Income  ←──────────┘               │                         │
+│  + Depreciation                         │                         │
+│  - Δ Working Capital                    │                         │
+│  = Operating Cash Flow                  │                         │
+│  - CapEx                                │                         │
+│  = FREE CASH FLOW                       │                         │
+│                                         │                         │
+│  Financing:                             │                         │
+│    + Debt Issuance                      │                         │
+│    - Debt Repayment                     │                         │
+│    - Dividends                          │                         │
+│  = Net Change in Cash  ─────────────────┼─────────┐               │
+└─────────────────────────────────────────┼─────────┼───────────────┘
+                                          │         │
+                                          │         ↓
+┌──────────────────────────────────────────────────────────────────┐
+│                      BALANCE SHEET                                │
+│                                                                   │
+│  ASSETS:                                                          │
+│    Cash  ←────────────────────────────────────────┘               │
+│    Accounts Receivable                                            │
+│    Inventory                                                      │
+│    PP&E                                                           │
+│                                                                   │
+│  LIABILITIES:                                                     │
+│    Accounts Payable                                               │
+│    Debt  ←────────────────────────────┘                           │
+│                                                                   │
+│  EQUITY:                                                          │
+│    Prior Equity + Net Income - Dividends                          │
+│                                                                   │
+│  CHECK: Assets = Liabilities + Equity                             │
+└──────────────────────────────────────────────────────────────────┘
+          </pre>
+        </div>
+      `;
+    }
+    
+    function displayDCF(stock) {
+      const fcfs = stock.cashFlows.slice(0, 5).map(cf => cf.freeCashFlow);
+      const avgFCF = fcfs.reduce((a, b) => a + b, 0) / fcfs.length;
+      
+      const growthRate = 0.05;
+      const wacc = 0.095;
+      const terminalGrowth = 0.03;
+      
+      let projectedFCF = [];
+      let pv = [];
+      
+      for (let i = 1; i <= 5; i++) {
+        const fcf = avgFCF * Math.pow(1 + growthRate, i);
+        const discount = Math.pow(1 + wacc, i);
+        projectedFCF.push(fcf);
+        pv.push(fcf / discount);
+      }
+      
+      const terminalValue = (projectedFCF[4] * (1 + terminalGrowth)) / (wacc - terminalGrowth);
+      const pvTerminal = terminalValue / Math.pow(1 + wacc, 5);
+      
+      const enterpriseValue = pv.reduce((a, b) => a + b, 0) + pvTerminal;
+      const latestBalance = stock.balanceSheets[0] || {};
+      const equityValue = enterpriseValue + latestBalance.cashAndEquivalents - latestBalance.longTermDebt;
+      const fairValue = equityValue / stock.sharesOutstanding;
+      const upside = ((fairValue - stock.price) / stock.price) * 100;
+      
+      document.getElementById('dcfData').innerHTML = `
+        <h2 style="margin-bottom: 20px;">📈 DCF Valuation Model</h2>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>FCF</th>
+              <th>Discount Factor</th>
+              <th>Present Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${projectedFCF.map((fcf, i) => `
+              <tr>
+                <td>Year ${i + 1}</td>
+                <td class="projected">$${(fcf / 1e9).toFixed(2)}B</td>
+                <td>${(1 / Math.pow(1 + wacc, i + 1)).toFixed(3)}</td>
+                <td class="calculated">$${(pv[i] / 1e9).toFixed(2)}B</td>
+              </tr>
+            `).join('')}
+            <tr style="border-top: 2px solid var(--primary);">
+              <td colspan="3"><strong>Terminal Value (Year 6+)</strong></td>
+              <td class="calculated" style="font-weight: 700;">$${(pvTerminal / 1e9).toFixed(2)}B</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="metric-grid" style="margin-top: 30px;">
+          <div class="metric-card">
+            <div class="metric-label">Enterprise Value</div>
+            <div class="metric-value">$${(enterpriseValue / 1e9).toFixed(1)}B</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Equity Value</div>
+            <div class="metric-value">$${(equityValue / 1e9).toFixed(1)}B</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Fair Value / Share</div>
+            <div class="metric-value">$${fairValue.toFixed(2)}</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Current Price</div>
+            <div class="metric-value">$${stock.price.toFixed(2)}</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">Upside / (Downside)</div>
+            <div class="metric-value" style="color: ${upside > 0 ? 'var(--success)' : 'var(--danger)'};">${upside > 0 ? '+' : ''}${upside.toFixed(1)}%</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function displayAssumptions(stock) {
+      document.getElementById('assumptionsData').innerHTML = `
+        <h2 style="margin-bottom: 20px;">⚙️ Key Modeling Assumptions</h2>
+        
+        <div style="background: var(--light); padding: 20px; border-radius: 12px; margin: 10px 0;">
+          <p style="margin: 5px 0;"><strong>Revenue Growth Rate:</strong> 5.0%</p>
+          <p style="color: var(--gray); font-size: 0.9rem; margin-left: 20px;">Based on historical trends and market conditions</p>
+          
+          <p style="margin: 15px 0 5px 0;"><strong>Terminal Growth Rate:</strong> 3.0%</p>
+          <p style="color: var(--gray); font-size: 0.9rem; margin-left: 20px;">Long-term GDP growth assumption</p>
+          
+          <p style="margin: 15px 0 5px 0;"><strong>WACC:</strong> 9.5%</p>
+          <p style="color: var(--gray); font-size: 0.9rem; margin-left: 20px;">Weighted Average Cost of Capital (discount rate)</p>
+          
+          <p style="margin: 15px 0 5px 0;"><strong>Tax Rate:</strong> 21%</p>
+          <p style="color: var(--gray); font-size: 0.9rem; margin-left: 20px;">U.S. corporate tax rate</p>
+        </div>
+        
+        <div class="learn-box" style="margin-top: 30px;">
+          <h3>💡 Ask the AI About Assumptions</h3>
+          <p>Want to understand these better? Try asking:</p>
+          <ul style="margin-left: 20px; margin-top: 10px;">
+            <li>"Why is terminal growth rate 3%?"</li>
+            <li>"How do you calculate WACC?"</li>
+            <li>"What if I change the growth rate to 7%?"</li>
+          </ul>
+        </div>
+      `;
+    }
+    
+    // Switch tabs
+    function switchTab(tabName) {
+      document.querySelectorAll('.content-area').forEach(area => {
+        area.classList.remove('active');
+      });
+      
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      document.getElementById(tabName + '-content').classList.add('active');
+      event.target.classList.add('active');
+    }
+    
+    // Show message
+    function showMessage(msg, type) {
+      document.getElementById('messageBox').innerHTML = `<div class="card message-box ${type}">${msg}</div>`;
+    }
+  </script>
+</body>
+</html>
